@@ -3,7 +3,9 @@ import { Route, Routes, BrowserRouter } from 'react-router-dom'
 import Header from './components/header'
 import Footer from './components/footer'
 import Home from './pages/home'
-import Contact from './pages/cvBuilder'
+import CvBuilder from './pages/cvBuilder'
+import ViewCvs from './pages/viewCvs'
+import CvView from './pages/cvView'
 
 export default function App() {
     return (
@@ -21,7 +23,9 @@ export default function App() {
                 min-h-screen">
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/criar-curriculo" element={<Contact />} />
+                    <Route path="/criar-curriculo" element={<CvBuilder />} />
+                    <Route path="/visualizar-curriculos" element={<ViewCvs />} />
+                    <Route path="/curriculo/:id" element={<CvView />} />
                 </Routes>
             </main>
             <Footer />

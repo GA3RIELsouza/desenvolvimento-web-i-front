@@ -33,6 +33,11 @@ npm install @hookform/resolvers
 npm install react-icons
 ```
 
+# Instalar React iMask
+```bash
+npm install react-imask imask
+```
+
 # Rodar projeto
 ```bash
 npm run dev

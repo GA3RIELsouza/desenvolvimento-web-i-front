@@ -1,5 +1,4 @@
 import { FaReact, FaRocket } from "react-icons/fa"
-import { FcIdea } from "react-icons/fc"
 import { PiReadCvLogo } from "react-icons/pi"
 import { useNavigate } from 'react-router-dom'
 
@@ -8,6 +7,10 @@ export default function Home() {
 
     const goToBuilder = () => {
         navigate('/criar-curriculo')
+    }
+
+    const goToViewCvs = () => {
+        navigate('/visualizar-curriculos')
     }
 
     return(
@@ -57,6 +60,28 @@ export default function Home() {
                         shadow-md
                         transition transform hover:scale-105">
                     <FaRocket /> Criar Meu Currículo
+                </button>
+
+                <button
+                    onClick={goToViewCvs}
+                    className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-3
+                        border-2
+                        rounded-lg
+                        px-6
+                        py-4
+                        mt-2
+                        mx-auto
+                        bg-red-500
+                        text-white
+                        cursor-pointer
+                        hover:bg-red-900
+                        shadow-md
+                        transition transform hover:scale-105">
+                    <FaRocket /> Visualizar Currículos
                 </button>
             </div>
         </>

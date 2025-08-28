@@ -10,9 +10,8 @@ export default function Nav() {
             <hr className="border-1 border-white mb-2"></hr>
             <ul className="flex justify-center gap-10">
                 <li className="px-2 py-1 hover:bg-gray-500"><Link to="/">Início</Link></li>
-                <li className="px-2 py-1 hover:bg-gray-500">Sobre</li>
-                <li className="px-2 py-1 hover:bg-gray-500">Serviços</li>
-                <li className="px-2 py-1 hover:bg-gray-500"><Link to="/criar-curriculo">Contatos</Link></li>
+                <li className="px-2 py-1 hover:bg-gray-500"><Link to="/criar-curriculo">Criar CV</Link></li>
+                <li className="px-2 py-1 hover:bg-gray-500"><Link to="/visualizar-curriculos">Visualizar CVs</Link></li>
             </ul>
 
             <div className="sm:hidden fixed bottom-4 right-4 z-50">
