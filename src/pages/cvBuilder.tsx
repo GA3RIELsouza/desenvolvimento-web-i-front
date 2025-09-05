@@ -2,9 +2,12 @@ import { useForm, useFieldArray, Controller } from "react-hook-form"
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { IMaskInput } from "react-imask"
+import { useNavigate, useLocation } from "react-router-dom"
+import { useEffect, useState } from "react";
 
 export default function CvBuilder() {
     type formData = {
+        id?: number;
         personalInfo: {
             fullName: string
             email: string
@@ -37,6 +40,13 @@ export default function CvBuilder() {
         }[]
     }
 
+    const location = useLocation();
+    const navigate = useNavigate();
+    const query = new URLSearchParams(location.search);
+    const cvId = query.get("id");
+
+    const [isLoading, setIsLoading] = useState(true);
+
     const schema = yup.object().shape({
         personalInfo: yup.object().shape({
             fullName: yup
@@ -50,7 +60,8 @@ export default function CvBuilder() {
             phoneNumber: yup
                 .string()
                 .required("É necessário informar o telefone.")
-                .min(14, "O telefone deve ter pelo menos 11 dígitos, incluindo o DDD."),
+                .transform((value) => value.replace(/\D/g, ''))
+                .min(10, "O telefone deve ter pelo menos 10 dígitos, incluindo o DDD."),
             address: yup.object().shape({
                 zipCode: yup.string().required("É necessário informar o CEP."),
                 street: yup.string().required("É necessário informar a rua."),
@@ -89,7 +100,8 @@ export default function CvBuilder() {
         register,
         handleSubmit,
         control,
-        formState: { errors }
+        formState: { errors },
+        reset
     } = useForm<formData>({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -127,24 +139,70 @@ export default function CvBuilder() {
         control,
         name: "languages",
     })
-    
-    const onSubmit = (data: formData) => {
-        alert(JSON.stringify(data, null, 2))
+
+    useEffect(() => {
+        if (cvId) {
+            const fetchCv = async () => {
+                try {
+                    const response = await fetch(`http://localhost:3001/api/cvs/${cvId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        reset(data); // Preenche o formulário com os dados do CV
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar CV para edição:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchCv();
+        } else {
+            setIsLoading(false);
+        }
+    }, [cvId, reset]);
+
+    const onSubmit = async (data: formData) => {
+        const method = cvId ? 'PUT' : 'POST';
+        const url = cvId ? `http://localhost:3001/api/cvs/${cvId}` : "http://localhost:3001/api/cvs";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                alert(`CV ${cvId ? 'atualizado' : 'criado'} com sucesso!`);
+                navigate("/visualizar-curriculos");
+            } else {
+                alert(`Erro ao ${cvId ? 'atualizar' : 'criar'} CV.`);
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            alert("Erro na requisição. Verifique o console.");
+        }
     }
 
     const inputClasses = "border-2 rounded-lg px-2 py-1 mt-2 bg-white text-black w-full";
     const errorClasses = "text-sm mt-1 bg-red-900 text-white p-1 rounded";
 
+    if (isLoading) {
+        return <div className="text-center p-10">Carregando formulário...</div>;
+    }
+
     return(
         <>
             <h1 className="text-2xl font-bold text-shadow-lg text-center my-6">
-                Crie seu CV
+                {cvId ? 'Edite seu CV' : 'Crie seu CV'}
             </h1>
 
             <hr className="border-1 w-full my-4"></hr>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-4">
-                {/* Informações Pessoais */}
+                {/* O restante do formulário permanece o mesmo */}
                 <div>
                     <h2 className="text-xl font-semibold mb-4">Informações Pessoais</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -173,12 +231,12 @@ export default function CvBuilder() {
                                         radix="."
                                         className={inputClasses}
                                         placeholder="(xx) xxxxx-xxxx"
+                                        onAccept={(value) => field.onChange(value)}
                                     />
                                 )}
                             />
                             {errors.personalInfo?.phoneNumber && <p className={errorClasses}>{errors.personalInfo.phoneNumber.message}</p>}
                         </div>
-
                     </div>
                     <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div>
@@ -355,7 +413,7 @@ export default function CvBuilder() {
                     {errors.languages && <p className={errorClasses}>É necessário adicionar pelo menos um idioma.</p>}
                 </div>
 
-                <input type="submit" value="Gerar CV" className="mt-8 p-4 bg-green-800 text-white font-bold rounded-lg cursor-pointer w-full" />
+                <input type="submit" value={cvId ? "Salvar Alterações" : "Gerar CV"} className="mt-8 p-4 bg-green-800 text-white font-bold rounded-lg cursor-pointer w-full" />
             </form>
         </>
     )

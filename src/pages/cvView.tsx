@@ -1,15 +1,73 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
-import { MOCKED_CVS } from '../../mockedData';
+import { useState, useEffect } from "react";
+import { formData } from "../../mockedData"; // Mantém a tipagem
 
 export default function CvView() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [cv, setCv] = useState<formData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const cvIndex = id ? parseInt(id, 10) : -1;
-    const cv = MOCKED_CVS[cvIndex];
+    useEffect(() => {
+        const fetchCv = async () => {
+            if (!id) {
+                setError("ID do currículo não fornecido.");
+                setIsLoading(false);
+                return;
+            }
+            try {
+                const response = await fetch(`http://localhost:3001/api/cvs/${id}`);
+                if (!response.ok) {
+                    throw new Error("Currículo não encontrado.");
+                }
+                const data = await response.json();
+                setCv(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    if (!cv) {
+        fetchCv();
+    }, [id]);
+
+    const handleEdit = () => {
+        // Redireciona para o formulário no modo de edição.
+        navigate(`/criar-curriculo?id=${id}`);
+    };
+
+    const handleDelete = async () => {
+        if (window.confirm("Tem certeza que deseja excluir este currículo?")) {
+            try {
+                const response = await fetch(`http://localhost:3001/api/cvs/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert("Currículo excluído com sucesso!");
+                    navigate('/visualizar-curriculos');
+                } else {
+                    alert("Erro ao excluir currículo.");
+                }
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                alert("Erro na requisição. Verifique o console.");
+            }
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="text-center p-10">
+                <p>Carregando...</p>
+            </div>
+        );
+    }
+
+    if (error) {
         return (
             <div className="
                 bg-white
@@ -29,7 +87,7 @@ export default function CvView() {
                     Currículo não encontrado
                 </h1>
                 <p className="text-gray-600">
-                    O ID fornecido não corresponde a nenhum currículo.
+                    {error}
                 </p>
                 <button
                     onClick={() => navigate('/visualizar-curriculos')}
@@ -41,19 +99,9 @@ export default function CvView() {
         );
     }
 
-    const handleEdit = () => {
-        // Redireciona para o formulário no modo de edição.
-        // Em um projeto real, você passaria o ID para o formulário carregar os dados.
-        navigate(`/criar-curriculo?id=${cvIndex}`);
-    };
-
-    const handleDelete = () => {
-        if (window.confirm("Tem certeza que deseja excluir este currículo?")) {
-            // Em um projeto real, aqui você faria a chamada para a API de exclusão.
-            alert("Currículo excluído com sucesso (simulado).");
-            navigate('/visualizar-curriculos');
-        }
-    };
+    if (!cv) {
+        return null;
+    }
 
     return (
         <div className="
